@@ -90,3 +90,81 @@ data:function(){
     }
 }
 最后通过事件来改变布尔值，从而改变动态绑定的样式
+动态style
+<div :style="flexStyle"></div>
+data:function(){
+    return {
+        flexStyle: {
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'no-wrap',
+        },
+    }
+}
+但是如果像动态壁纸这样就不能用data里面写css，需要div里面写url(${imgUrls[currentIndex]})引用
+因为写在data里面的不能引用，不过可以试试this行不行
+自定义组件
+组件的注册，全局注册和局部注册两种，
+Vue.component创建全局注册，注册后在任何新创建的Vue根实例中使用
+局部注册，在单个Vue格式的文件中创建组件，在需要用到的地方进行注册
+一般在component目录里创建vue文件，在data里面加上name作为组件名称
+在另一个文件里使用组件，<HelloWorld></HelloWorld>
+在script里面导入import HelloWorld from 文件路径
+在script里面注册组件components:{HelloWorld}
+自定义组件中的数据必须是一个函数，相互独立的
+组件单向数据流
+prop使用方法，
+:title="title1"注意tittle1是父组件的data变量，tittle是子组件定义的变量
+子组件
+<h1>{{ title }}</h1>
+data中加上props: ['title']
+props: {
+      title: String
+    }
+props: {
+  title: String,
+  // 多类型
+  likes: [String, Number],
+  // 带有默认值
+  isPublished: {
+    type: Boolean,
+    default: true
+  },
+  // 必填
+  commentIds: {
+    type: Array,
+    required: true
+  },
+  author: Object,
+  callback: Function,
+  contactsPromise: Promise
+}
+子组件处理父组件传入的信息
+props: ['initialTitle'],
+computed: {
+  normalizedTitle: function () {
+    // 对传入的 initialTitle 进行去空格、字母小写化处理
+    return this.initialTitle.trim().toLowerCase()
+  }
+}
+自定义组件绑定原生事件
+在自定义组件的根元素上监听一个原生组件和在html原生标签上监听一个原生事件是有区别的
+父组件和子组件的绑定，父组件和子组件同时加上事件，最后只有子组件发生
+为了让父组件也发生需要给父组件加上@click.native="print(article)"
+按键修饰符
+@keyup.enter="print(article)"
+给子组件绑定自定义事件
+父组件在调用子组件的时候加上v-on:upVote="handleLikes"
+upVote是事件名称
+<button @click="$emit('upVote')">点赞</button>是子组件调用
+如果还需要加别的功能，可以这样写
+<button @click="childEvent">点赞</button>
+methods: {
+  childEvent: function() {
+    // 调用自定义事件 upVote
+    this.$emit('upVote');
+    // do other things
+  }
+}
