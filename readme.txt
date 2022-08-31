@@ -347,3 +347,105 @@ router.push({ path: 'home' })
 router.push({ name: 'user', params: { userId: '123' }})
 带查询参数
 router.push({ path: 'register', query: { plan: 'private' }})
+对应的命名路由为
+{ path:'user/:userId', name:'user' }
+{ path:'register' }
+可以换成这种写法
+router.push({ path: 'user/123'})
+跳转后对应的参数
+{
+  // 路由名称
+  name: "user",
+  meta: {},
+  // 路由path
+  path: "/user/123",
+  // 网页位置指定标识符
+  hash: "#abc",
+  // window.location.search
+  query: {name: "userName"},
+  // 路径参数 user/:userId
+  params: {userId: "123"},
+  fullPath: "/user/123?name=userName#abc"
+}
+可以用$route.query等方法获取
+重定向和别名
+别名
+const routes: [
+  // 定义 alias 属性
+  { path: '/a', alias: '/b', component: A }
+];
+const routes: [
+  {
+    path: '/layout',
+    // 别名定为 /
+    alias: '/',
+    component: ()=> import('@/pages/nest/Layout.vue'),
+    children: [
+      { path: 'home', component: Home },
+      { path: 'courseall', component: CourseAll },
+      { path: 'coursedetail/:courseId', component: CourseDetail }
+    ]
+  }
+];
+这里是把layout变成/，home本来是/layout/home，现在变成了/home
+接下来我们用重定向把/home变成/
+const routes: [
+  // 定义 redirect 属性，将 /a 重定向到 /b
+  { path: '/a', redirect: '/b' }
+]
+我们希望访问/会重定向到/home
+在之前的基础上加上redirect: '/home',就可以了
+监听路由
+用到了watch和$router
+watch: {
+  $route(to,from){
+    console.log(to, from);
+  }
+}
+或者
+watch: {
+  $route: {
+    handler: function(to,from) {
+      console.log(to,from);
+    },
+    // 深度观察监听
+    deep: true
+  }
+具体实例
+我们首先定义点击事件
+<script>
+export default {
+  methods: {
+    // 点击 tab 时会执行 changeTab 方法
+    changeTab(type) {
+      // 使用 Router 实例方法改变路径参数
+      this.$router.push({ query: { type: type } });
+    }
+  }
+};
+</script>
+然后监听路由变化，更新样式
+<script>
+export default {
+  watch: {
+    $route(to, from) {
+      // 路由变化了就执行更新样式的方法
+      this.updateTab();
+      console.log(to, from);
+    }
+  },
+  methods: {
+    changeTab(type) {
+      this.$router.push({ query: { type: type } });
+    },
+    // 更新样式的方法
+    updateTab() {
+      this.tabList.map(menu => {
+        menu.active = menu.type === this.$route.query.type;
+      });
+    }
+  }
+};
+</script>
+网络请求
+async和await
