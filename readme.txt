@@ -157,14 +157,193 @@ computed: {
 @keyup.enter="print(article)"
 给子组件绑定自定义事件
 父组件在调用子组件的时候加上v-on:upVote="handleLikes"
+执行的方法是handleLikes
+methods: {
+  handleLikes(article) {
+    article.likes++
+  }
+}
 upVote是事件名称
 <button @click="$emit('upVote')">点赞</button>是子组件调用
 如果还需要加别的功能，可以这样写
 <button @click="childEvent">点赞</button>
 methods: {
   childEvent: function() {
-    // 调用自定义事件 upVote
-    this.$emit('upVote');
+    // 调用自定义事件 upVote，这里的第二个参数最后会传到父组件中的 handleLikes 方法里
+    this.$emit('upVote', this.article);
     // do other things
   }
 }
+在子组件引用的时候加上参数
+prop完成了父组件到子组件的数据传递，自定义事件帮我们完成了子组件到父组件的数据传递
+自定义事件的双向绑定，
+<MyCount class="count" :count.sync="count"></MyCount>
+// 在 `methods` 对象中定义方法
+data: function() {
+  return {
+    count: 0
+  }
+}
+在子组件中引用
+<button @click="$emit('update:count', count+1)">加一</button>
+  {{ count }}
+props: ['count'],
+组件函数的调用
+父组件调用子组件函数和属性
+用到了ref属性
+父组件给子组件加上ref
+<Modal ref="modal"></Modal>
+父组件方法
+methods: {
+    showModal() {
+      // 调用子组件中的 show 方法
+      this.$refs.modal.show();
+    }
+  }
+子组件的标签加上ref
+<input ref="input" type="text" />
+<button @click="focusInput">点击使输入框获取焦点</button>
+则父组件可以通过函数访问到该元素，并且可以添加功能
+<script>
+export default {
+  name: 'app',
+  methods: {
+    focusInput() {
+      // this.$refs.input 访问输入框元素，并调用 focus() 方法使其获取焦点
+      this.$refs.input.focus();
+    }
+  }
+}
+</script>
+插槽，slot，相当于在子组件的DOM中留一个位置，父组件可以添加内容
+子组件添加
+<div class="modal-content">
+  <slot>这是个弹框</slot>
+  <div class="footer">
+    <button @click="close">close</button>
+    <button @click="confirm">confirm</button>
+  </div>
+</div>
+如果父组件不添加内容，就显示子组件的内容，如果添加了，
+<Modal :visible.sync="visible">个性化内容</Modal>
+就显示的是父组件的内容
+slot可以加上name属性，这样我们就可以添加多个slot
+<header>
+<slot name="header"></slot>
+</header>
+使用的时候父组件需要加上v-slot
+<Modal :visible.sync="visible">
+  <template v-slot:header>
+    <h1>Modal title</h1>
+  </template>
+路由router
+单页面应用是不加载整个页面，只更新某个指定的容器内容，更新视图而不重新请求页面
+简单的路由配置，路由就是加上配置，从而能保证各个组件间灵活切换
+在main.js里面
+// 0. 导入 Vue 和 VueRouter，要调用 Vue.use(VueRouter)
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+
+Vue.use(VueRouter)
+
+// 1. 定义 (路由) 组件。
+// 可以从其他文件 import 进来
+import Foo from "./views/Foo.vue";
+import Bar from "./views/Bar.vue";
+
+// 2. 定义路由
+// 每个路由应该映射一个组件。 其中"component" 可以是
+// 通过 Vue.extend() 创建的组件构造器，
+// 或者，只是一个组件配置对象。
+// 我们晚点再讨论嵌套路由。
+const routes = [
+  { path: '/foo', component: Foo },
+  { path: '/bar', component: Bar }
+]
+
+// 3. 创建 router 实例，然后传 `routes` 配置
+// 你还可以传别的配置参数, 不过先这么简单着吧。
+const router = new VueRouter({
+  routes // (缩写) 相当于 routes: routes
+})
+
+// 4. 创建和挂载根实例。
+// 记得要通过 router 配置参数注入路由，
+// 从而让整个应用都有路由功能
+const app = new Vue({
+  router
+}).$mount('#app')
+<template>
+  <div id="app">
+    <h1>Hello App!</h1>
+    <p>
+      <!-- 使用 router-link 组件来导航. -->
+      <!-- 通过传入 `to` 属性指定链接. -->
+      <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
+      <router-link to="/foo">Go to Foo</router-link>
+      <router-link to="/bar">Go to Bar</router-link>
+    </p>
+    <!-- 路由出口 -->
+    <!-- 路由匹配到的组件将渲染在这里 -->
+    <!-- App.vue 中的 <router-view></router-view> 是路由的最高级出口 -->
+    <router-view></router-view>
+  </div>
+</template>
+其中router-link作为导航，router-view相当于插槽，点哪个插入哪个
+添加路由
+import Foo from './views/Foo.vue';
+const routes = [
+  { path: '/foo', component: Foo },
+];
+还可以
+const routes = [
+  { path: '/foo', component: () => import('./views/Foo.vue') },
+];
+还可以命名路由
+const routes = [
+  { path: '/foo',
+    name: 'fooName',
+    component: () => import('./views/Foo.vue')
+  }
+];
+通过命名跳转<router-link :to="{name: 'fooName'}">Go to Foo</router-link>
+嵌套路由
+const routes = [
+  {
+    path: '/album',
+    component: Album,
+    // children 属性可以用来配置下一级路由（子路由）
+    children: [
+      { path: 'list', component: List },
+      { path: 'add', component: Add }
+    ]
+  }
+];
+动态路由
+多个路径对应一个组件
+const routes = [
+  // id 就是路径参数
+  { path: '/user/:id', component: User }
+]
+使用<template>
+  <div>user id: {{ $route.params.id }}</div>
+</template>
+如果不存在我们的路径，我们用通配符设置404
+const routes = [
+  {
+    // 会匹配所有路径
+    path: '*',
+    component: NotFound
+  }
+]
+我们要把通配符放到最后，因为是按照顺序访问的
+页面跳转
+this.$router.push(...)
+router.push('user')
+router.push('/user')
+加上/会进入根路径/user
+不加/进入的是当前路径下的/user
+router.push({ path: 'home' })
+router.push({ name: 'user', params: { userId: '123' }})
+带查询参数
+router.push({ path: 'register', query: { plan: 'private' }})
