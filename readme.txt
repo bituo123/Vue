@@ -449,3 +449,45 @@ export default {
 </script>
 网络请求
 async和await
+请求远程数据
+异步async
+用于声明一个异步函数，返回的是一个promise
+async function asyncFn()
+等待异步await
+用于等待一个异步方法执行的完成，他会阻塞后面的代码，等待promise对象resolve，得到值作为表达式运算结果
+async function getAsyncFn() {
+  const result = await asyncFn();
+  console.log(result);
+}
+多个请求使用Promise.all
+async function getAsyncFn() {
+  const result = await Promise.all([asyncFn1(), asyncFn2()]);
+  console.log(result);
+}
+在vue中引用数据
+在data里定义一个变量，在methods里面写一个异步函数
+async mounted() {
+    // 在生命周期 mounted 中调用获取课程信息的方法
+    await this.queryAllCourse();
+  },
+async queryAllCourse() {
+      // 在 fetch 中传入接口地址
+      const res = await fetch('https://www.fastmock.site/mock/2c5613db3f13a5c02f552c9bb7e6620b/f5/api/queryallcourse');
+      // 将文本体解析为 JSON 格式的promise对象
+      const myJson = await res.json();
+      // 获取返回数据中的 data 赋值给 courseList
+      this.courseList = myJson.data;}
+通过前端数据查询指定信息
+async mounted() {
+    await this.getCourse();
+  },
+  methods: {
+    async getCourse() {
+      // 从路径中获取课程 id
+      const courseId = this.$route.params.courseId
+      // 在接口地址后传入参数 id
+      const res = await fetch('https://www.fastmock.site/mock/2c5613db3f13a5c02f552c9bb7e6620b/f5/api/getcourse?id=' + courseId);
+      const myJson = await res.json();
+      this.course = myJson.data;
+    }
+  }
