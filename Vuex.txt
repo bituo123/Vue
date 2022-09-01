@@ -1,0 +1,21 @@
+Vuex是状态管理模式，针对Vue.js提供的数据驱动解决方案
+组件数据交互复杂，单页应用不能复用共享，
+Vuex走的是单项数据绑定模式，Actions-》State-》View-》Actions
+Vuex配置
+首先先安装，然后在src/store目录创建一个index.js
+内容
+import Vue from 'vue'
+import Vuex from 'vuex';
+Vue.use(Vuex);
+export default new Vuex.Store({
+    state:{}
+})
+找到main.js
+import store from './store';
+// Vue实例化这里把 store 加入进去
+new Vue({
+  router,
+  store,
+  render: h => h(App)
+}).$mount('#app');
+Vuex的核心技术，三大核心，State，Mutation，Action
