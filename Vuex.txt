@@ -30,3 +30,70 @@ decrement(state,num){state.count-=num;}
 Action是vue用来触发Mutation函数来执行修改State的值的，在原有的基础上加上
 actions:{increment:({commit})=>commit('increment'),decrement:({commit)}=>commit('decrement')},
 action是一个函数，他接受两个参数
+第一个参数是context对象，context对象有以下属性和方法
+{
+  state, // 等同于 `store.state`，若在模块中则为局部状态
+    rootState, // 等同于 `store.state`，只存在于模块中，
+    commit, // 等同于 `store.commit`
+    dispatch, // 等同于 `store.dispatch`
+    getters, // 等同于 `store.getters`
+    rootGetters; // 等同于 `store.getters`，只存在于模块中
+}
+contex是JSON对象，我们可以用ES6结构方式来声明参数，也就是：
+increment: ({ state,commit,dispatch }) => commit("increment")
+commit是个函数，它的作用就是把数据提交到mutation中，有两个参数，第一个是mutation函数名称，第二个是自定义对象
+actions: {
+  increment: ({ commit }) => commit('increment');
+}
+这个就是通过actions触发了mutation的increment函数，完成了从action提交数据到mutation，从mutation执行state状态更新
+只要我们定义好state，action，我们就可以在任意vue文件中得到数据和执行数据变化
+获取state
+<div>
+    Clicked: {{ $store.state.count }} times
+</div>
+state只支持单向绑定，mutation更新state状态后，vue的值也会自动更新
+在实际工作中，我们会用Vuex的mapState函数，动态把state和computed绑定
+<template>
+  <div>
+    Clicked: {{ count }} times
+  </div>
+</template>
+<script>
+  // 导入 mapState 函数
+  import { mapState } from 'vuex';
+  export default {
+    computed: {
+      ...mapState({
+        // 箭头函数可使代码更简练
+        count: state => state.count
+      })
+    }
+  };
+</script>
+这样的好处是只把state的count绑定到vue的count上面，而不会因为state的变化就引发页面刷新
+执行action
+上面的案例我们可以用mapActions这个函数把store的action绑定到vue的方法中实现改变count
+<template>
+  <div>
+    Clicked: {{ count }} times
+    <div>
+      <button @click="increment">+</button>
+      <button @click="decrement">-</button>
+    </div>
+  </div>
+</template>
+<script>
+  // 导入 mapState mapActions 函数
+  import { mapState, mapActions } from 'vuex';
+
+  export default {
+    computed: {
+      ...mapState({
+        count: state => state.count
+      })
+    },
+    methods: { ...mapActions(['increment', 'decrement']) }
+  };
+</script>
+因为我们前面已经在index.js定义过这个state，和action，所以这里直接是引用函数名来触发函数方法
+总结一下，就是store可以实现所有vue文件数据的共通，在store里面定义state数据，然后用mutation方法来修改数据，再用action来执行方法，最后在需要数据共通的vue文件里调用mapState和mapActions来实现数据共通和改变
