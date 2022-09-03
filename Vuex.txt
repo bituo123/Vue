@@ -19,3 +19,14 @@ new Vue({
   render: h => h(App)
 }).$mount('#app');
 Vuex的核心技术，三大核心，State，Mutation，Action
+State的作用就是存储数据的，表示数据在Vuex种的存储状态，全局的大JSON对象
+我们想要获取数据只能从state里获取,下面是定义的一个count变量
+export default new Vuex.Store({state:{count:0}});
+Mutation是用来修改State状态的，State不能直接被修改，你如果更新State状态值只能借助Mutation
+Mutation函数可以用来接受两个参数，一个state是实例，可以通过此参数修改state的值，一个payload，接受外部传入的对象，需要和调用方约定好对象类型，也可以不传参
+export default new Vuex.Store{state:{count:0}},mutations:{increment(state){state.count++;},decrement(state){state.count--;}}});
+双参数
+decrement(state,num){state.count-=num;}
+Action是vue用来触发Mutation函数来执行修改State的值的，在原有的基础上加上
+actions:{increment:({commit})=>commit('increment'),decrement:({commit)}=>commit('decrement')},
+action是一个函数，他接受两个参数
