@@ -97,3 +97,116 @@ state只支持单向绑定，mutation更新state状态后，vue的值也会自�
 </script>
 因为我们前面已经在index.js定义过这个state，和action，所以这里直接是引用函数名来触发函数方法
 总结一下，就是store可以实现所有vue文件数据的共通，在store里面定义state数据，然后用mutation方法来修改数据，再用action来执行方法，最后在需要数据共通的vue文件里调用mapState和mapActions来实现数据共通和改变
+Vuex Getter
+Getter的作用就是把state的数据进行compute操作，跟mutation的用法差不多
+在store里面加上
+getters: {
+    evenOrOdd: state => (state.count % 2 === 0 ? "偶数" : "奇数")
+  }
+实现定义
+然后在需要使用的文件里加上
+import { mapGetters } from 'vuex'
+computed: {
+  // 使用对象展开运算符将 getter 混入 computed 对象中
+    ...mapGetters([
+      'evenOrOdd'
+    ])
+Vuex request
+action也会接受外部数据
+首先我们在store里面定义一个users数据
+import Vue from "vue";
+import Vuex from "vuex";
+
+Vue.use(Vuex);
+
+export default new Vuex.Store({
+  state: {
+    users: []
+  }
+});
+然后我们需要在mutation定义一个load函数用来更新state
+import Vue from "vue";
+import Vuex from "vuex";
+
+Vue.use(Vuex);
+
+export default new Vuex.Store({
+  state: {
+    users: []
+  },
+  mutations: {
+    load(state, payload) {
+      state.users = payload;
+    }
+  }
+});
+由于网络请求是一个异步行为，所以我们调用的时候需要借助await和async，action函数声明就得添加async关键字，执行request语句需要加上await关键字
+axios框架
+https://github.com/axios/axios
+使用
+import axios from "axios";
+const response = await axios.get(
+        "https://www.fastmock.site/mock/a9b15cd4db90d4e03ed76cd3c76d9197/f6/users"
+      );
+如果我们需要获取其中的某个值需要这样调用response.data.data.users
+在action中使用axios
+import Vue from "vue";
+import Vuex from "vuex";
+import axios from "axios";
+
+Vue.use(Vuex);
+
+export default new Vuex.Store({
+  state: {
+    users: []
+  },
+  action的作用就是给commit赋值，然后commit用来传递参数给mutation的函数，执行函数操作
+  actions: {
+    load: async ({ commit }) => {
+      const response = await axios.get(
+        "https://www.fastmock.site/mock/a9b15cd4db90d4e03ed76cd3c76d9197/f6/users"
+      );
+      commit("load", response.data.data.users);
+    }
+  },
+  mutations: {
+    load(state, payload) {
+      state.users = payload;
+    }
+  }
+});
+运用
+<template>
+  <div>
+    <ul v-for="user in users" :key="user.name">
+      <li>
+        <p>
+          <label>用户名</label>:
+          <span>{{user.name}}</span>
+        </p>
+        <p>
+          <label>邮箱</label>:
+          <span>{{user.email}}</span>
+        </p>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+import { mapState, mapActions } from "vuex";
+
+export default {
+  async mounted() {
+    await this.load();
+  },
+  computed: {
+    ...mapState({
+      users: state => state.users
+    })
+  },
+  methods: { ...mapActions(["load"]) }
+};
+</script>
+Vuex表单
+提交数据，注册用户和点赞等，往往需要往action函数传递参数了
