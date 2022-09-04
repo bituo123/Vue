@@ -210,3 +210,172 @@ export default {
 </script>
 Vuex表单
 提交数据，注册用户和点赞等，往往需要往action函数传递参数了
+post提交数据
+import Vue from "vue";
+import Vuex from "vuex";
+import axios from "axios";
+
+Vue.use(Vuex);
+
+export default new Vuex.Store({
+  state: {
+    user: {}
+  },
+  mutations: {
+    setUser(state, payload) {
+      state.user = payload;
+    }
+  },
+  actions: {
+    login: async ({ commit }, param) => {
+      // 执行远程请求
+      const response = await axios.post(
+        "https://www.fastmock.site/mock/a9b15cd4db90d4e03ed76cd3c76d9197/f6/login",
+        {
+          username: param.username,
+          password: param.password
+        }
+      );
+      if (response.data.success) {
+        commit("setUser", response.data.data);
+      }
+    }
+  }
+});
+运用
+<template>
+  <div>
+    <div>
+      <label>用户名</label>
+      <input type="text" v-model="username" />
+    </div>
+    <div>
+      <label>密码</label>
+      <input type="password" v-model="password" />
+    </div>
+    <button @click="onLogin">登录</button>
+    <div v-if="loginError">登录失败</div>
+  </div>
+</template>
+
+<script>
+  import { mapState, mapActions } from "vuex";
+
+  export default {
+    data() {
+      return {
+        username: "",
+        password: "",
+        loginError: false
+      };
+    },
+    computed: {
+      ...mapState({
+        user: state => state.user
+      })
+    },
+    methods: {
+      ...mapActions(["login"]),
+      async onLogin() {
+        // 执行 store 的登录 action
+        await this.login({
+          username: this.username,
+          password: this.password
+        });
+
+        if (this.user && this.user.username) {
+          // 登录成功,随便跳转一下
+          window.location.href = "https://m.baidu.com";
+        } else {
+          // 登录失败
+          this.loginError = true;
+        }
+      }
+    }
+  };
+</script>
+Vuex模块
+一般项目不会只在一个js里面写store，会有多个store，因此我们需要用到模块这个方案来为何store
+配置模块
+多模块组合
+const moduleA = {
+  state: { ... },
+  mutations: { ... },
+  actions: { ... },
+  getters: { ... }
+}
+
+const moduleB = {
+  state: { ... },
+  mutations: { ... },
+  actions: { ... }
+}
+
+const store = new Vuex.Store({
+  modules: {
+    a: moduleA,
+    b: moduleB
+  }
+})
+分拆模块文件
+每个模块的对象单独放在独立的文件中
+count.js
+export default {
+  namespaced: true,
+  state: {
+    count: 0
+  },
+  actions: {
+    increment: ({ commit }) => commit("increment"),
+    decrement: ({ commit }) => commit("decrement")
+  },
+  mutations: {
+    increment(state) {
+      state.count++;
+    },
+    decrement(state) {
+      state.count--;
+    }
+  }
+};
+namespaced: true这个代表开启命名空间，作用在于这个module的state,mutation,action,getter都只限定在本module里面
+集成module，放在index.js里面
+import Vue from "vue";
+import Vuex from "vuex";
+Vue.use(Vuex);
+
+import count from "./count";
+
+export default new Vuex.Store({
+  modules: {
+    count:count
+  }
+});
+使用module
+const { mapState, mapActions } = createNamespacedHelpers("count");
+
+const { mapState:demoMapState, mapActions:demoMapActions} = createNamespacedHelpers("demo");
+
+
+export default {
+  computed: {
+    ...mapState({
+      count: state => state.count
+    }),
+     ...demoMapState({
+      demoCount: state => state.count
+    })
+  },
+  methods: { ...mapActions(["increment", "decrement"]) }
+};
+API开发，建议把所有的API操作都封装在api文件中，在src目录创建一个api文件夹，然后在src/api目录创建product.js，等文件存放数据
+import axios from "axios";
+
+export default {
+  async getProducts() {
+    const response = await axios.get(
+      "https://www.fastmock.site/mock/a9b15cd4db90d4e03ed76cd3c76d9197/f6/products"
+    );
+    return response.data;
+  }
+};
